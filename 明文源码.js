@@ -10,7 +10,7 @@ import { connect } from 'cloudflare:sockets';
 
 // Generate your own UUID using the following command in PowerShell:
 // Powershell -NoExit -Command "[guid]::NewGuid()"
-let userID = 'auto';
+let userID = '88deb2d4-96e2-448b-b9c6-6e2a5f26fc8f';
 
 // Proxy IPs to choose from
 let proxyIPs = [
@@ -46,7 +46,7 @@ let ipUrlCsv = [
 let ipLocal = [
 	'visa.cn:443#youtube.com/@AM_CLUB 订阅频道获取更多教程',
 	'icook.hk#t.me/AM_CLUBS 加入交流群解锁更多优选节点',
-	'time.is:443#github.com/amclubs GitHub仓库查看更多项目'
+	'time.is#github.com/amclubs GitHub仓库查看更多项目'
 ];
 let noTLS = 'false';
 let sl = 5;
@@ -58,9 +58,6 @@ let total = 99 * 1125899906842624; // PB (perhaps referring to bandwidth or tota
 let download = Math.floor(Math.random() * 1099511627776);
 let upload = download;
 
-// Regex pattern to match IP addresses and ports
-// let regex = /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|\[.*\]):?(\d+)?#?(.*)?$/;
-
 // Network protocol type
 let network = 'ws'; // WebSocket
 
@@ -70,7 +67,7 @@ let fakeHostName;
 
 // Subscription and conversion details
 let subProtocol = 'https';
-let subConverter = 'url.v1.mk'; // Subscription conversion backend using Sheep's function
+let subConverter = atob('dXJsLnYxLm1r'); // Subscription conversion backend using Sheep's function
 let subConfig = "https://raw.githubusercontent.com/amclubs/ACL4SSR/main/Clash/config/ACL4SSR_Online_Full_MultiMode.ini"; // Subscription profile
 let fileName = 'AM%E7%A7%91%E6%8A%80';
 let isBase64 = true;
@@ -78,15 +75,13 @@ let isBase64 = true;
 let botToken = '';
 let chatID = '';
 
-let pwd;
-
 let projectName = atob('YW1jbHVicy9hbS1jZi10dW5uZWw');
 let ytName = atob('aHR0cHM6Ly95b3V0dWJlLmNvbS9AQU1fQ0xVQg==');
 const httpPattern = /^http(s)?:\/\/.+/;
 
-// if (!isValidUUID(userID)) {
-// 	throw new Error('uuid is invalid');
-// }
+if (!isValidUUID(userID)) {
+	throw new Error('uuid is invalid');
+}
 
 export default {
 	/**
@@ -94,12 +89,11 @@ export default {
 	 * @param {{UUID: string, PROXYIP: string, DNS_RESOLVER_URL: string, NODE_ID: int, API_HOST: string, API_TOKEN: string}} env
 	 * @param {import("@cloudflare/workers-types").ExecutionContext} ctx
 	 * @returns {Promise<Response>}
-	 */
+	*/
 	async fetch(request, env, ctx) {
 		try {
-			// Destructure environment variables for clarity
 			let {
-				PASSWORD,
+				UUID,
 				PROXYIP,
 				SOCKS5,
 				DNS_RESOLVER_URL,
@@ -120,9 +114,7 @@ export default {
 				//兼容
 				ADDRESSESAPI,
 			} = env;
-
-			userID = (PASSWORD || userID).toLowerCase();
-			pwd = sha256.sha224(userID);
+			userID = (UUID || userID).toLowerCase();
 
 			const url = new URL(request.url);
 
@@ -146,7 +138,7 @@ export default {
 			} else {
 				let proxyIpTxts = await addIpText(proxyIpTxt);
 				let ipUrlTxtAndCsv = await getIpUrlTxtAndCsv(noTLS, proxyIpTxts, null);
-				let updatedIps = ipUrlTxtAndCsv.txt.map(ip => `amclubs${download}.${ip}`);
+				let updatedIps = ipUrlTxtAndCsv.txt.map(ip => `${tagName}${download}.${ip}`);
 				const uniqueIpTxt = [...new Set([...updatedIps, ...proxyIPs])];
 				proxyIP = uniqueIpTxt[Math.floor(Math.random() * uniqueIpTxt.length)];
 			}
@@ -211,14 +203,13 @@ export default {
 				: [undefined, subConverter];
 			subConverter = subConverterWithoutProtocol;
 
-			// console.log(`proxyIPs: ${proxyIPs} \n proxyIP: ${proxyIP} \n ipLocal: ${ipLocal} \n ipUrlTxt: ${ipUrlTxt} `);
+			// console.log(`proxyIPs: ${proxyIPs} \n proxyIP: ${proxyIP} \n ipLocal: ${ipLocal} \n ipUrl: ${ipUrl} \n ipUrlTxt: ${ipUrlTxt} `);
 
 			//const uuid = url.searchParams.get('uuid')?.toLowerCase() || 'null';
 			const ua = request.headers.get('User-Agent') || 'null';
 			const userAgent = ua.toLowerCase();
 			const host = request.headers.get('Host');
 			const upgradeHeader = request.headers.get('Upgrade');
-			// Calculate expiry and upload/download limits
 			const expire = Math.floor(timestamp / 1000);
 
 			// If WebSocket upgrade, handle WebSocket request
@@ -233,7 +224,6 @@ export default {
 			// Handle routes based on the path
 			switch (url.pathname.toLowerCase()) {
 				case '/': {
-					// Serve the nginx disguise page
 					return new Response(await nginx(), {
 						headers: {
 							'Content-Type': 'text/html; charset=UTF-8',
@@ -452,527 +442,6 @@ async function parseSocks5FromUrl(socks5, url) {
 	return null;
 }
 
-// sha256 Hash Algorithm in pure JavaScript
-/**
- * [js-sha256]
- */
-(function () {
-	'use strict';
-
-	var ERROR = 'input is invalid type';
-	var WINDOW = typeof window === 'object';
-	var root = WINDOW ? window : {};
-	if (root.JS_SHA256_NO_WINDOW) {
-		WINDOW = false;
-	}
-	var WEB_WORKER = !WINDOW && typeof self === 'object';
-	var NODE_JS = !root.JS_SHA256_NO_NODE_JS && typeof process === 'object' && process.versions && process.versions.node;
-	if (NODE_JS) {
-		root = global;
-	} else if (WEB_WORKER) {
-		root = self;
-	}
-	var COMMON_JS = !root.JS_SHA256_NO_COMMON_JS && typeof module === 'object' && module.exports;
-	var AMD = typeof define === 'function' && define.amd;
-	var ARRAY_BUFFER = !root.JS_SHA256_NO_ARRAY_BUFFER && typeof ArrayBuffer !== 'undefined';
-	var HEX_CHARS = '0123456789abcdef'.split('');
-	var EXTRA = [-2147483648, 8388608, 32768, 128];
-	var SHIFT = [24, 16, 8, 0];
-	var K = [
-		0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
-		0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
-		0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
-		0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
-		0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
-		0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
-		0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
-		0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
-	];
-	var OUTPUT_TYPES = ['hex', 'array', 'digest', 'arrayBuffer'];
-
-	var blocks = [];
-
-	if (root.JS_SHA256_NO_NODE_JS || !Array.isArray) {
-		Array.isArray = function (obj) {
-			return Object.prototype.toString.call(obj) === '[object Array]';
-		};
-	}
-
-	if (ARRAY_BUFFER && (root.JS_SHA256_NO_ARRAY_BUFFER_IS_VIEW || !ArrayBuffer.isView)) {
-		ArrayBuffer.isView = function (obj) {
-			return typeof obj === 'object' && obj.buffer && obj.buffer.constructor === ArrayBuffer;
-		};
-	}
-
-	var createOutputMethod = function (outputType, is224) {
-		return function (message) {
-			return new Sha256(is224, true).update(message)[outputType]();
-		};
-	};
-
-	var createMethod = function (is224) {
-		var method = createOutputMethod('hex', is224);
-		if (NODE_JS) {
-			method = nodeWrap(method, is224);
-		}
-		method.create = function () {
-			return new Sha256(is224);
-		};
-		method.update = function (message) {
-			return method.create().update(message);
-		};
-		for (var i = 0; i < OUTPUT_TYPES.length; ++i) {
-			var type = OUTPUT_TYPES[i];
-			method[type] = createOutputMethod(type, is224);
-		}
-		return method;
-	};
-
-	var nodeWrap = function (method, is224) {
-		var crypto = require('node:crypto')
-		var Buffer = require('node:buffer').Buffer;
-		var algorithm = is224 ? 'sha224' : 'sha256';
-		var bufferFrom;
-		if (Buffer.from && !root.JS_SHA256_NO_BUFFER_FROM) {
-			bufferFrom = Buffer.from;
-		} else {
-			bufferFrom = function (message) {
-				return new Buffer(message);
-			};
-		}
-		var nodeMethod = function (message) {
-			if (typeof message === 'string') {
-				return crypto.createHash(algorithm).update(message, 'utf8').digest('hex');
-			} else {
-				if (message === null || message === undefined) {
-					throw new Error(ERROR);
-				} else if (message.constructor === ArrayBuffer) {
-					message = new Uint8Array(message);
-				}
-			}
-			if (Array.isArray(message) || ArrayBuffer.isView(message) ||
-				message.constructor === Buffer) {
-				return crypto.createHash(algorithm).update(bufferFrom(message)).digest('hex');
-			} else {
-				return method(message);
-			}
-		};
-		return nodeMethod;
-	};
-
-	var createHmacOutputMethod = function (outputType, is224) {
-		return function (key, message) {
-			return new HmacSha256(key, is224, true).update(message)[outputType]();
-		};
-	};
-
-	var createHmacMethod = function (is224) {
-		var method = createHmacOutputMethod('hex', is224);
-		method.create = function (key) {
-			return new HmacSha256(key, is224);
-		};
-		method.update = function (key, message) {
-			return method.create(key).update(message);
-		};
-		for (var i = 0; i < OUTPUT_TYPES.length; ++i) {
-			var type = OUTPUT_TYPES[i];
-			method[type] = createHmacOutputMethod(type, is224);
-		}
-		return method;
-	};
-
-	function Sha256(is224, sharedMemory) {
-		if (sharedMemory) {
-			blocks[0] = blocks[16] = blocks[1] = blocks[2] = blocks[3] =
-				blocks[4] = blocks[5] = blocks[6] = blocks[7] =
-				blocks[8] = blocks[9] = blocks[10] = blocks[11] =
-				blocks[12] = blocks[13] = blocks[14] = blocks[15] = 0;
-			this.blocks = blocks;
-		} else {
-			this.blocks = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-		}
-
-		if (is224) {
-			this.h0 = 0xc1059ed8;
-			this.h1 = 0x367cd507;
-			this.h2 = 0x3070dd17;
-			this.h3 = 0xf70e5939;
-			this.h4 = 0xffc00b31;
-			this.h5 = 0x68581511;
-			this.h6 = 0x64f98fa7;
-			this.h7 = 0xbefa4fa4;
-		} else { // 256
-			this.h0 = 0x6a09e667;
-			this.h1 = 0xbb67ae85;
-			this.h2 = 0x3c6ef372;
-			this.h3 = 0xa54ff53a;
-			this.h4 = 0x510e527f;
-			this.h5 = 0x9b05688c;
-			this.h6 = 0x1f83d9ab;
-			this.h7 = 0x5be0cd19;
-		}
-
-		this.block = this.start = this.bytes = this.hBytes = 0;
-		this.finalized = this.hashed = false;
-		this.first = true;
-		this.is224 = is224;
-	}
-
-	Sha256.prototype.update = function (message) {
-		if (this.finalized) {
-			return;
-		}
-		var notString, type = typeof message;
-		if (type !== 'string') {
-			if (type === 'object') {
-				if (message === null) {
-					throw new Error(ERROR);
-				} else if (ARRAY_BUFFER && message.constructor === ArrayBuffer) {
-					message = new Uint8Array(message);
-				} else if (!Array.isArray(message)) {
-					if (!ARRAY_BUFFER || !ArrayBuffer.isView(message)) {
-						throw new Error(ERROR);
-					}
-				}
-			} else {
-				throw new Error(ERROR);
-			}
-			notString = true;
-		}
-		var code, index = 0, i, length = message.length, blocks = this.blocks;
-		while (index < length) {
-			if (this.hashed) {
-				this.hashed = false;
-				blocks[0] = this.block;
-				this.block = blocks[16] = blocks[1] = blocks[2] = blocks[3] =
-					blocks[4] = blocks[5] = blocks[6] = blocks[7] =
-					blocks[8] = blocks[9] = blocks[10] = blocks[11] =
-					blocks[12] = blocks[13] = blocks[14] = blocks[15] = 0;
-			}
-
-			if (notString) {
-				for (i = this.start; index < length && i < 64; ++index) {
-					blocks[i >>> 2] |= message[index] << SHIFT[i++ & 3];
-				}
-			} else {
-				for (i = this.start; index < length && i < 64; ++index) {
-					code = message.charCodeAt(index);
-					if (code < 0x80) {
-						blocks[i >>> 2] |= code << SHIFT[i++ & 3];
-					} else if (code < 0x800) {
-						blocks[i >>> 2] |= (0xc0 | (code >>> 6)) << SHIFT[i++ & 3];
-						blocks[i >>> 2] |= (0x80 | (code & 0x3f)) << SHIFT[i++ & 3];
-					} else if (code < 0xd800 || code >= 0xe000) {
-						blocks[i >>> 2] |= (0xe0 | (code >>> 12)) << SHIFT[i++ & 3];
-						blocks[i >>> 2] |= (0x80 | ((code >>> 6) & 0x3f)) << SHIFT[i++ & 3];
-						blocks[i >>> 2] |= (0x80 | (code & 0x3f)) << SHIFT[i++ & 3];
-					} else {
-						code = 0x10000 + (((code & 0x3ff) << 10) | (message.charCodeAt(++index) & 0x3ff));
-						blocks[i >>> 2] |= (0xf0 | (code >>> 18)) << SHIFT[i++ & 3];
-						blocks[i >>> 2] |= (0x80 | ((code >>> 12) & 0x3f)) << SHIFT[i++ & 3];
-						blocks[i >>> 2] |= (0x80 | ((code >>> 6) & 0x3f)) << SHIFT[i++ & 3];
-						blocks[i >>> 2] |= (0x80 | (code & 0x3f)) << SHIFT[i++ & 3];
-					}
-				}
-			}
-
-			this.lastByteIndex = i;
-			this.bytes += i - this.start;
-			if (i >= 64) {
-				this.block = blocks[16];
-				this.start = i - 64;
-				this.hash();
-				this.hashed = true;
-			} else {
-				this.start = i;
-			}
-		}
-		if (this.bytes > 4294967295) {
-			this.hBytes += this.bytes / 4294967296 << 0;
-			this.bytes = this.bytes % 4294967296;
-		}
-		return this;
-	};
-
-	Sha256.prototype.finalize = function () {
-		if (this.finalized) {
-			return;
-		}
-		this.finalized = true;
-		var blocks = this.blocks, i = this.lastByteIndex;
-		blocks[16] = this.block;
-		blocks[i >>> 2] |= EXTRA[i & 3];
-		this.block = blocks[16];
-		if (i >= 56) {
-			if (!this.hashed) {
-				this.hash();
-			}
-			blocks[0] = this.block;
-			blocks[16] = blocks[1] = blocks[2] = blocks[3] =
-				blocks[4] = blocks[5] = blocks[6] = blocks[7] =
-				blocks[8] = blocks[9] = blocks[10] = blocks[11] =
-				blocks[12] = blocks[13] = blocks[14] = blocks[15] = 0;
-		}
-		blocks[14] = this.hBytes << 3 | this.bytes >>> 29;
-		blocks[15] = this.bytes << 3;
-		this.hash();
-	};
-
-	Sha256.prototype.hash = function () {
-		var a = this.h0, b = this.h1, c = this.h2, d = this.h3, e = this.h4, f = this.h5, g = this.h6,
-			h = this.h7, blocks = this.blocks, j, s0, s1, maj, t1, t2, ch, ab, da, cd, bc;
-
-		for (j = 16; j < 64; ++j) {
-			// rightrotate
-			t1 = blocks[j - 15];
-			s0 = ((t1 >>> 7) | (t1 << 25)) ^ ((t1 >>> 18) | (t1 << 14)) ^ (t1 >>> 3);
-			t1 = blocks[j - 2];
-			s1 = ((t1 >>> 17) | (t1 << 15)) ^ ((t1 >>> 19) | (t1 << 13)) ^ (t1 >>> 10);
-			blocks[j] = blocks[j - 16] + s0 + blocks[j - 7] + s1 << 0;
-		}
-
-		bc = b & c;
-		for (j = 0; j < 64; j += 4) {
-			if (this.first) {
-				if (this.is224) {
-					ab = 300032;
-					t1 = blocks[0] - 1413257819;
-					h = t1 - 150054599 << 0;
-					d = t1 + 24177077 << 0;
-				} else {
-					ab = 704751109;
-					t1 = blocks[0] - 210244248;
-					h = t1 - 1521486534 << 0;
-					d = t1 + 143694565 << 0;
-				}
-				this.first = false;
-			} else {
-				s0 = ((a >>> 2) | (a << 30)) ^ ((a >>> 13) | (a << 19)) ^ ((a >>> 22) | (a << 10));
-				s1 = ((e >>> 6) | (e << 26)) ^ ((e >>> 11) | (e << 21)) ^ ((e >>> 25) | (e << 7));
-				ab = a & b;
-				maj = ab ^ (a & c) ^ bc;
-				ch = (e & f) ^ (~e & g);
-				t1 = h + s1 + ch + K[j] + blocks[j];
-				t2 = s0 + maj;
-				h = d + t1 << 0;
-				d = t1 + t2 << 0;
-			}
-			s0 = ((d >>> 2) | (d << 30)) ^ ((d >>> 13) | (d << 19)) ^ ((d >>> 22) | (d << 10));
-			s1 = ((h >>> 6) | (h << 26)) ^ ((h >>> 11) | (h << 21)) ^ ((h >>> 25) | (h << 7));
-			da = d & a;
-			maj = da ^ (d & b) ^ ab;
-			ch = (h & e) ^ (~h & f);
-			t1 = g + s1 + ch + K[j + 1] + blocks[j + 1];
-			t2 = s0 + maj;
-			g = c + t1 << 0;
-			c = t1 + t2 << 0;
-			s0 = ((c >>> 2) | (c << 30)) ^ ((c >>> 13) | (c << 19)) ^ ((c >>> 22) | (c << 10));
-			s1 = ((g >>> 6) | (g << 26)) ^ ((g >>> 11) | (g << 21)) ^ ((g >>> 25) | (g << 7));
-			cd = c & d;
-			maj = cd ^ (c & a) ^ da;
-			ch = (g & h) ^ (~g & e);
-			t1 = f + s1 + ch + K[j + 2] + blocks[j + 2];
-			t2 = s0 + maj;
-			f = b + t1 << 0;
-			b = t1 + t2 << 0;
-			s0 = ((b >>> 2) | (b << 30)) ^ ((b >>> 13) | (b << 19)) ^ ((b >>> 22) | (b << 10));
-			s1 = ((f >>> 6) | (f << 26)) ^ ((f >>> 11) | (f << 21)) ^ ((f >>> 25) | (f << 7));
-			bc = b & c;
-			maj = bc ^ (b & d) ^ cd;
-			ch = (f & g) ^ (~f & h);
-			t1 = e + s1 + ch + K[j + 3] + blocks[j + 3];
-			t2 = s0 + maj;
-			e = a + t1 << 0;
-			a = t1 + t2 << 0;
-			this.chromeBugWorkAround = true;
-		}
-
-		this.h0 = this.h0 + a << 0;
-		this.h1 = this.h1 + b << 0;
-		this.h2 = this.h2 + c << 0;
-		this.h3 = this.h3 + d << 0;
-		this.h4 = this.h4 + e << 0;
-		this.h5 = this.h5 + f << 0;
-		this.h6 = this.h6 + g << 0;
-		this.h7 = this.h7 + h << 0;
-	};
-
-	Sha256.prototype.hex = function () {
-		this.finalize();
-
-		var h0 = this.h0, h1 = this.h1, h2 = this.h2, h3 = this.h3, h4 = this.h4, h5 = this.h5,
-			h6 = this.h6, h7 = this.h7;
-
-		var hex = HEX_CHARS[(h0 >>> 28) & 0x0F] + HEX_CHARS[(h0 >>> 24) & 0x0F] +
-			HEX_CHARS[(h0 >>> 20) & 0x0F] + HEX_CHARS[(h0 >>> 16) & 0x0F] +
-			HEX_CHARS[(h0 >>> 12) & 0x0F] + HEX_CHARS[(h0 >>> 8) & 0x0F] +
-			HEX_CHARS[(h0 >>> 4) & 0x0F] + HEX_CHARS[h0 & 0x0F] +
-			HEX_CHARS[(h1 >>> 28) & 0x0F] + HEX_CHARS[(h1 >>> 24) & 0x0F] +
-			HEX_CHARS[(h1 >>> 20) & 0x0F] + HEX_CHARS[(h1 >>> 16) & 0x0F] +
-			HEX_CHARS[(h1 >>> 12) & 0x0F] + HEX_CHARS[(h1 >>> 8) & 0x0F] +
-			HEX_CHARS[(h1 >>> 4) & 0x0F] + HEX_CHARS[h1 & 0x0F] +
-			HEX_CHARS[(h2 >>> 28) & 0x0F] + HEX_CHARS[(h2 >>> 24) & 0x0F] +
-			HEX_CHARS[(h2 >>> 20) & 0x0F] + HEX_CHARS[(h2 >>> 16) & 0x0F] +
-			HEX_CHARS[(h2 >>> 12) & 0x0F] + HEX_CHARS[(h2 >>> 8) & 0x0F] +
-			HEX_CHARS[(h2 >>> 4) & 0x0F] + HEX_CHARS[h2 & 0x0F] +
-			HEX_CHARS[(h3 >>> 28) & 0x0F] + HEX_CHARS[(h3 >>> 24) & 0x0F] +
-			HEX_CHARS[(h3 >>> 20) & 0x0F] + HEX_CHARS[(h3 >>> 16) & 0x0F] +
-			HEX_CHARS[(h3 >>> 12) & 0x0F] + HEX_CHARS[(h3 >>> 8) & 0x0F] +
-			HEX_CHARS[(h3 >>> 4) & 0x0F] + HEX_CHARS[h3 & 0x0F] +
-			HEX_CHARS[(h4 >>> 28) & 0x0F] + HEX_CHARS[(h4 >>> 24) & 0x0F] +
-			HEX_CHARS[(h4 >>> 20) & 0x0F] + HEX_CHARS[(h4 >>> 16) & 0x0F] +
-			HEX_CHARS[(h4 >>> 12) & 0x0F] + HEX_CHARS[(h4 >>> 8) & 0x0F] +
-			HEX_CHARS[(h4 >>> 4) & 0x0F] + HEX_CHARS[h4 & 0x0F] +
-			HEX_CHARS[(h5 >>> 28) & 0x0F] + HEX_CHARS[(h5 >>> 24) & 0x0F] +
-			HEX_CHARS[(h5 >>> 20) & 0x0F] + HEX_CHARS[(h5 >>> 16) & 0x0F] +
-			HEX_CHARS[(h5 >>> 12) & 0x0F] + HEX_CHARS[(h5 >>> 8) & 0x0F] +
-			HEX_CHARS[(h5 >>> 4) & 0x0F] + HEX_CHARS[h5 & 0x0F] +
-			HEX_CHARS[(h6 >>> 28) & 0x0F] + HEX_CHARS[(h6 >>> 24) & 0x0F] +
-			HEX_CHARS[(h6 >>> 20) & 0x0F] + HEX_CHARS[(h6 >>> 16) & 0x0F] +
-			HEX_CHARS[(h6 >>> 12) & 0x0F] + HEX_CHARS[(h6 >>> 8) & 0x0F] +
-			HEX_CHARS[(h6 >>> 4) & 0x0F] + HEX_CHARS[h6 & 0x0F];
-		if (!this.is224) {
-			hex += HEX_CHARS[(h7 >>> 28) & 0x0F] + HEX_CHARS[(h7 >>> 24) & 0x0F] +
-				HEX_CHARS[(h7 >>> 20) & 0x0F] + HEX_CHARS[(h7 >>> 16) & 0x0F] +
-				HEX_CHARS[(h7 >>> 12) & 0x0F] + HEX_CHARS[(h7 >>> 8) & 0x0F] +
-				HEX_CHARS[(h7 >>> 4) & 0x0F] + HEX_CHARS[h7 & 0x0F];
-		}
-		return hex;
-	};
-
-	Sha256.prototype.toString = Sha256.prototype.hex;
-
-	Sha256.prototype.digest = function () {
-		this.finalize();
-
-		var h0 = this.h0, h1 = this.h1, h2 = this.h2, h3 = this.h3, h4 = this.h4, h5 = this.h5,
-			h6 = this.h6, h7 = this.h7;
-
-		var arr = [
-			(h0 >>> 24) & 0xFF, (h0 >>> 16) & 0xFF, (h0 >>> 8) & 0xFF, h0 & 0xFF,
-			(h1 >>> 24) & 0xFF, (h1 >>> 16) & 0xFF, (h1 >>> 8) & 0xFF, h1 & 0xFF,
-			(h2 >>> 24) & 0xFF, (h2 >>> 16) & 0xFF, (h2 >>> 8) & 0xFF, h2 & 0xFF,
-			(h3 >>> 24) & 0xFF, (h3 >>> 16) & 0xFF, (h3 >>> 8) & 0xFF, h3 & 0xFF,
-			(h4 >>> 24) & 0xFF, (h4 >>> 16) & 0xFF, (h4 >>> 8) & 0xFF, h4 & 0xFF,
-			(h5 >>> 24) & 0xFF, (h5 >>> 16) & 0xFF, (h5 >>> 8) & 0xFF, h5 & 0xFF,
-			(h6 >>> 24) & 0xFF, (h6 >>> 16) & 0xFF, (h6 >>> 8) & 0xFF, h6 & 0xFF
-		];
-		if (!this.is224) {
-			arr.push((h7 >>> 24) & 0xFF, (h7 >>> 16) & 0xFF, (h7 >>> 8) & 0xFF, h7 & 0xFF);
-		}
-		return arr;
-	};
-
-	Sha256.prototype.array = Sha256.prototype.digest;
-
-	Sha256.prototype.arrayBuffer = function () {
-		this.finalize();
-
-		var buffer = new ArrayBuffer(this.is224 ? 28 : 32);
-		var dataView = new DataView(buffer);
-		dataView.setUint32(0, this.h0);
-		dataView.setUint32(4, this.h1);
-		dataView.setUint32(8, this.h2);
-		dataView.setUint32(12, this.h3);
-		dataView.setUint32(16, this.h4);
-		dataView.setUint32(20, this.h5);
-		dataView.setUint32(24, this.h6);
-		if (!this.is224) {
-			dataView.setUint32(28, this.h7);
-		}
-		return buffer;
-	};
-
-	function HmacSha256(key, is224, sharedMemory) {
-		var i, type = typeof key;
-		if (type === 'string') {
-			var bytes = [], length = key.length, index = 0, code;
-			for (i = 0; i < length; ++i) {
-				code = key.charCodeAt(i);
-				if (code < 0x80) {
-					bytes[index++] = code;
-				} else if (code < 0x800) {
-					bytes[index++] = (0xc0 | (code >>> 6));
-					bytes[index++] = (0x80 | (code & 0x3f));
-				} else if (code < 0xd800 || code >= 0xe000) {
-					bytes[index++] = (0xe0 | (code >>> 12));
-					bytes[index++] = (0x80 | ((code >>> 6) & 0x3f));
-					bytes[index++] = (0x80 | (code & 0x3f));
-				} else {
-					code = 0x10000 + (((code & 0x3ff) << 10) | (key.charCodeAt(++i) & 0x3ff));
-					bytes[index++] = (0xf0 | (code >>> 18));
-					bytes[index++] = (0x80 | ((code >>> 12) & 0x3f));
-					bytes[index++] = (0x80 | ((code >>> 6) & 0x3f));
-					bytes[index++] = (0x80 | (code & 0x3f));
-				}
-			}
-			key = bytes;
-		} else {
-			if (type === 'object') {
-				if (key === null) {
-					throw new Error(ERROR);
-				} else if (ARRAY_BUFFER && key.constructor === ArrayBuffer) {
-					key = new Uint8Array(key);
-				} else if (!Array.isArray(key)) {
-					if (!ARRAY_BUFFER || !ArrayBuffer.isView(key)) {
-						throw new Error(ERROR);
-					}
-				}
-			} else {
-				throw new Error(ERROR);
-			}
-		}
-
-		if (key.length > 64) {
-			key = (new Sha256(is224, true)).update(key).array();
-		}
-
-		var oKeyPad = [], iKeyPad = [];
-		for (i = 0; i < 64; ++i) {
-			var b = key[i] || 0;
-			oKeyPad[i] = 0x5c ^ b;
-			iKeyPad[i] = 0x36 ^ b;
-		}
-
-		Sha256.call(this, is224, sharedMemory);
-
-		this.update(iKeyPad);
-		this.oKeyPad = oKeyPad;
-		this.inner = true;
-		this.sharedMemory = sharedMemory;
-	}
-	HmacSha256.prototype = new Sha256();
-
-	HmacSha256.prototype.finalize = function () {
-		Sha256.prototype.finalize.call(this);
-		if (this.inner) {
-			this.inner = false;
-			var innerHash = this.array();
-			Sha256.call(this, this.is224, this.sharedMemory);
-			this.update(this.oKeyPad);
-			this.update(innerHash);
-			Sha256.prototype.finalize.call(this);
-		}
-	};
-
-	var exports = createMethod();
-	exports.sha256 = exports;
-	exports.sha224 = createMethod(true);
-	exports.sha256.hmac = createHmacMethod();
-	exports.sha224.hmac = createHmacMethod(true);
-
-	if (COMMON_JS) {
-		module.exports = exports;
-	} else {
-		root.sha256 = exports.sha256;
-		root.sha224 = exports.sha224;
-		if (AMD) {
-			define(function () {
-				return exports;
-			});
-		}
-	}
-})();
 
 /** ---------------------Get data------------------------------ */
 
@@ -1071,7 +540,7 @@ async function getIpUrlTxt(urlTxts) {
 			method: 'GET',
 			headers: {
 				'Accept': 'text/html,application/xhtml+xml,application/xml;',
-				'User-Agent': 'amclubs/am-cf-tunnel'
+				'User-Agent': projectName
 			},
 			signal: controller.signal // Attach the AbortController's signal to the fetch request to allow cancellation when needed
 		}).then(response => response.ok ? response.text() : Promise.reject())));
@@ -1110,6 +579,7 @@ async function getIpUrlCsv(urlCsvs, tls) {
 
 	// Fetch and process all CSVs concurrently
 	const fetchCsvPromises = urlCsvs.map(async (csvUrl) => {
+		// console.error('getIpUrlCsv--> csvUrl:', csvUrl);
 		try {
 			const response = await fetch(csvUrl);
 
@@ -1151,7 +621,6 @@ async function getIpUrlCsv(urlCsvs, tls) {
 				if (columns.length < header.length) {
 					continue;
 				}
-
 				// Check if TLS matches and speed is greater than sl
 				const tlsValue = columns[tlsIndex].toUpperCase();
 				const speedValue = parseFloat(columns[speedIndex]);
@@ -1174,7 +643,7 @@ async function getIpUrlCsv(urlCsvs, tls) {
 	return newAddressesCsv;
 }
 
-const protocolTypeBase64 = 'dHJvamFu';
+const protocolTypeBase64 = 'dmxlc3M=';
 /**
  * Get node configuration information
  * @param {*} uuid 
@@ -1264,7 +733,7 @@ function getConfigHtml(userID, host, remark, v2ray, clash) {
 	// HTML Head with CSS and FontAwesome library
 	const htmlHead = `
     <head>
-      <title>am-cf-tunnel(AM科技)</title>
+      <title>${projectName}(${fileName})</title>
       <meta name='description' content='This is a project to generate free vmess nodes. For more information, please subscribe youtube(AM科技) https://youtube.com/@AM_CLUB and follow GitHub https://github.com/amclubs ' />
       <style>
         body {
@@ -1315,10 +784,10 @@ function getConfigHtml(userID, host, remark, v2ray, clash) {
 		<a href="t.me/AM_CLUBS" target="_blank">t.me/AM_CLUBS</a>
 		</br></br>
 		GitHub项目地址 点击Star!Star!Star!</br>
-		<a href="https://github.com/amclubs/am-cf-trojan" target="_blank">https://github.com/amclubs/am-cf-trojan</a>
+		<a href="https://github.com/${projectName}" target="_blank">https://github.com/${projectName}</a>
 		</br></br>
 		YouTube频道,订阅频道,更多技术分享</br>
-		<a href="https://youtube.com/@AM_CLUB" target="_blank">https://youtube.com/@AM_CLUB</a>
+		<a href="${ytName}" target="_blank">${ytName}</a>
 		</p>
   `;
 
@@ -1411,7 +880,8 @@ async function getSubscribeNode(userAgent, _url, host, fakeHostName, fakeUserID,
 		}
 		const response = await fetch(url, {
 			headers: {
-				'User-Agent': `${userAgent} am-cf-tunnel/amclubs`
+				//'Content-Type': 'text/html; charset=UTF-8',
+				'User-Agent': `${userAgent} ${projectName}`
 			}
 		});
 		responseBody = await response.text();
@@ -1483,7 +953,6 @@ function splitNodeData(uniqueIpTxt, noTLS, host, uuid, userAgent) {
 			address = ip;
 			port = newPort || port;
 			remarks = extra || host;
-
 			// console.log(`splitNodeData---> ip: ${ip} \n extra: ${extra} \n port: ${port}`);
 		}
 
@@ -1700,66 +1169,89 @@ async function channelOverWSHandler(request) {
 	const [client, webSocket] = Object.values(webSocketPair);
 	webSocket.accept();
 
-	let address = "";
-	let portWithRandomLog = "";
-	const remoteSocketWrapper = { value: null };
-	let udpStreamWrite = null;
-
-	// Logging function
-	const log = (info, event = "") => {
-		console.log(`[${address}:${portWithRandomLog}] ${info}`, event);
+	let address = '';
+	let portWithRandomLog = '';
+	let currentDate = new Date();
+	const log = (/** @type {string} */ info, /** @type {string | undefined} */ event) => {
+		console.log(`[${currentDate} ${address}:${portWithRandomLog}] ${info}`, event || '');
 	};
-
-	// Get early data WebSocket protocol header
-	const earlyDataHeader = request.headers.get("sec-websocket-protocol") || "";
+	const earlyDataHeader = request.headers.get('sec-websocket-protocol') || '';
 	const readableWebSocketStream = makeReadableWebSocketStream(webSocket, earlyDataHeader, log);
 
-	// Handle WebSocket data
-	const handleStreamData = async (chunk) => {
-		if (udpStreamWrite) {
-			return udpStreamWrite(chunk);
-		}
-
-		if (remoteSocketWrapper.value) {
-			const writer = remoteSocketWrapper.value.writable.getWriter();
-			await writer.write(chunk);
-			writer.releaseLock();
-			return;
-		}
-
-		// Parse channel protocol header
-		const { hasError, message, portRemote = 443, addressRemote = "", rawClientData, addressType } = await parsechannelHeader(chunk, userID);
-		address = addressRemote;
-		portWithRandomLog = `${portRemote}--${Math.random()} tcp`;
-
-		if (hasError) {
-			throw new Error(message);
-		}
-
-		// Handle TCP outbound connection
-		handleTCPOutBound(remoteSocketWrapper, addressRemote, portRemote, rawClientData, webSocket, null, log, addressType);
+	/** @type {{ value: import("@cloudflare/workers-types").Socket | null}}*/
+	let remoteSocketWapper = {
+		value: null,
 	};
+	let udpStreamWrite = null;
+	let isDns = false;
 
-	// WebSocket stream pipe
-	readableWebSocketStream.pipeTo(
-		new WritableStream({
-			write: handleStreamData,
-			close: () => log("readableWebSocketStream is closed"),
-			abort: (reason) => log("readableWebSocketStream is aborted", JSON.stringify(reason)),
-		})
-	).catch((err) => {
-		log("readableWebSocketStream pipeTo error", err);
+	// ws --> remote
+	readableWebSocketStream.pipeTo(new WritableStream({
+		async write(chunk, controller) {
+			if (isDns && udpStreamWrite) {
+				return udpStreamWrite(chunk);
+			}
+			if (remoteSocketWapper.value) {
+				const writer = remoteSocketWapper.value.writable.getWriter()
+				await writer.write(chunk);
+				writer.releaseLock();
+				return;
+			}
+
+			const {
+				hasError,
+				//message,
+				portRemote = 443,
+				addressRemote = '',
+				rawDataIndex,
+				channelVersion = new Uint8Array([0, 0]),
+				isUDP,
+				addressType,
+			} = processchannelHeader(chunk, userID);
+			address = addressRemote;
+			portWithRandomLog = `${portRemote} ${isUDP ? 'udp' : 'tcp'} `;
+
+			if (hasError) {
+				throw new Error(message);
+			}
+
+			// If UDP and not DNS port, close it
+			if (isUDP && portRemote !== 53) {
+				throw new Error('UDP proxy only enabled for DNS which is port 53');
+			}
+
+			if (isUDP && portRemote === 53) {
+				isDns = true;
+			}
+
+			const channelResponseHeader = new Uint8Array([channelVersion[0], 0]);
+			const rawClientData = chunk.slice(rawDataIndex);
+
+			if (isDns) {
+				const { write } = await handleUDPOutBound(webSocket, channelResponseHeader, log);
+				udpStreamWrite = write;
+				udpStreamWrite(rawClientData);
+				return;
+			}
+			log(`processchannelHeader-->${addressType} Processing TCP outbound connection ${addressRemote}:${portRemote}`);
+
+			handleTCPOutBound(remoteSocketWapper, addressRemote, portRemote, rawClientData, webSocket, channelResponseHeader, log, addressType);
+		},
+		close() {
+			log(`readableWebSocketStream is close`);
+		},
+		abort(reason) {
+			log(`readableWebSocketStream is abort`, JSON.stringify(reason));
+		},
+	})).catch((err) => {
+		log('readableWebSocketStream pipeTo error', err);
 	});
 
 	return new Response(null, {
 		status: 101,
-		// @ts-ignore
-		webSocket: client
+		webSocket: client,
 	});
 }
-
-
-
 
 /**
  * Handles outbound TCP connections.
@@ -1884,100 +1376,123 @@ function makeReadableWebSocketStream(webSocketServer, earlyDataHeader, log) {
  *  isUDP?: boolean
  * }} An object with the relevant information extracted from the channel header buffer.
  */
-async function parsechannelHeader(buffer, userID) {
-	if (buffer.byteLength < 56) {
+function processchannelHeader(channelBuffer, userID) {
+	if (channelBuffer.byteLength < 24) {
 		return {
 			hasError: true,
-			message: "invalid data"
-		};
-	}
-	let crLfIndex = 56;
-	if (new Uint8Array(buffer.slice(56, 57))[0] !== 0x0d || new Uint8Array(buffer.slice(57, 58))[0] !== 0x0a) {
-		return {
-			hasError: true,
-			message: "invalid header format (missing CR LF)"
-		};
-	}
-	const password = new TextDecoder().decode(buffer.slice(0, crLfIndex));
-	if (password !== pwd) {
-		return {
-			hasError: true,
-			message: "invalid password"
+			message: 'invalid data',
 		};
 	}
 
-	const socks5DataBuffer = buffer.slice(crLfIndex + 2);
-	if (socks5DataBuffer.byteLength < 6) {
+	const version = new Uint8Array(channelBuffer.slice(0, 1));
+	let isValidUser = false;
+	let isUDP = false;
+	const slicedBuffer = new Uint8Array(channelBuffer.slice(1, 17));
+	const slicedBufferString = stringify(slicedBuffer);
+	// check if userID is valid uuid or uuids split by , and contains userID in it otherwise return error message to console
+	const uuids = userID.includes(',') ? userID.split(",") : [userID];
+	// uuid_validator(hostName, slicedBufferString);
+
+
+	// isValidUser = uuids.some(userUuid => slicedBufferString === userUuid.trim());
+	isValidUser = uuids.some(userUuid => slicedBufferString === userUuid.trim()) || uuids.length === 1 && slicedBufferString === uuids[0].trim();
+
+	console.log(`userID: ${slicedBufferString}`);
+
+	if (!isValidUser) {
 		return {
 			hasError: true,
-			message: "invalid SOCKS5 request data"
+			message: 'invalid user',
 		};
 	}
 
-	const view = new DataView(socks5DataBuffer);
-	const cmd = view.getUint8(0);
-	if (cmd !== 1) {
+	const optLength = new Uint8Array(channelBuffer.slice(17, 18))[0];
+	//skip opt for now
+
+	const command = new Uint8Array(
+		channelBuffer.slice(18 + optLength, 18 + optLength + 1)
+	)[0];
+
+	// 0x01 TCP
+	// 0x02 UDP
+	// 0x03 MUX
+	if (command === 1) {
+		isUDP = false;
+	} else if (command === 2) {
+		isUDP = true;
+	} else {
 		return {
 			hasError: true,
-			message: "unsupported command, only TCP (CONNECT) is allowed"
+			message: `command ${command} is not support, command 01-tcp,02-udp,03-mux`,
 		};
 	}
+	const portIndex = 18 + optLength + 1;
+	const portBuffer = channelBuffer.slice(portIndex, portIndex + 2);
+	// port is big-Endian in raw data etc 80 == 0x005d
+	const portRemote = new DataView(portBuffer).getUint16(0);
 
-	const addressType = view.getUint8(1);
-	// 0x01: IPv4 address
-	// 0x03: Domain name
-	// 0x04: IPv6 address
+	let addressIndex = portIndex + 2;
+	const addressBuffer = new Uint8Array(
+		channelBuffer.slice(addressIndex, addressIndex + 1)
+	);
+
+	// 1--> ipv4  addressLength =4
+	// 2--> domain name addressLength=addressBuffer[1]
+	// 3--> ipv6  addressLength =16
+	const addressType = addressBuffer[0];
 	let addressLength = 0;
-	let addressIndex = 2;
-	let address = "";
+	let addressValueIndex = addressIndex + 1;
+	let addressValue = '';
 	switch (addressType) {
 		case 1:
 			addressLength = 4;
-			address = new Uint8Array(
-				socks5DataBuffer.slice(addressIndex, addressIndex + addressLength)
-			).join(".");
+			addressValue = new Uint8Array(
+				channelBuffer.slice(addressValueIndex, addressValueIndex + addressLength)
+			).join('.');
 			break;
-		case 3:
+		case 2:
 			addressLength = new Uint8Array(
-				socks5DataBuffer.slice(addressIndex, addressIndex + 1)
+				channelBuffer.slice(addressValueIndex, addressValueIndex + 1)
 			)[0];
-			addressIndex += 1;
-			address = new TextDecoder().decode(
-				socks5DataBuffer.slice(addressIndex, addressIndex + addressLength)
+			addressValueIndex += 1;
+			addressValue = new TextDecoder().decode(
+				channelBuffer.slice(addressValueIndex, addressValueIndex + addressLength)
 			);
 			break;
-		case 4:
+		case 3:
 			addressLength = 16;
-			const dataView = new DataView(socks5DataBuffer.slice(addressIndex, addressIndex + addressLength));
+			const dataView = new DataView(
+				channelBuffer.slice(addressValueIndex, addressValueIndex + addressLength)
+			);
+			// 2001:0db8:85a3:0000:0000:8a2e:0370:7334
 			const ipv6 = [];
 			for (let i = 0; i < 8; i++) {
 				ipv6.push(dataView.getUint16(i * 2).toString(16));
 			}
-			address = ipv6.join(":");
+			addressValue = ipv6.join(':');
+			// seems no need add [] for ipv6
 			break;
 		default:
 			return {
 				hasError: true,
-				message: `invalid addressType is ${addressType}`
+				message: `invild  addressType is ${addressType}`,
 			};
 	}
-
-	if (!address) {
+	if (!addressValue) {
 		return {
 			hasError: true,
-			message: `address is empty, addressType is ${addressType}`
+			message: `addressValue is empty, addressType is ${addressType}`,
 		};
 	}
 
-	const portIndex = addressIndex + addressLength;
-	const portBuffer = socks5DataBuffer.slice(portIndex, portIndex + 2);
-	const portRemote = new DataView(portBuffer).getUint16(0);
 	return {
 		hasError: false,
-		addressRemote: address,
+		addressRemote: addressValue,
 		portRemote,
-		rawClientData: socks5DataBuffer.slice(portIndex + 4),
-		addressType: addressType
+		rawDataIndex: addressValueIndex + addressLength,
+		channelVersion: version,
+		isUDP,
+		addressType,
 	};
 }
 
@@ -2070,6 +1585,121 @@ function safeCloseWebSocket(socket) {
 	}
 }
 
+/**
+ * Handles outbound UDP traffic by transforming the data into DNS queries and sending them over a WebSocket connection.
+ * @param {import("@cloudflare/workers-types").WebSocket} webSocket The WebSocket connection to send the DNS queries over.
+ * @param {ArrayBuffer} channelResponseHeader The channel response header.
+ * @param {(string) => void} log The logging function.
+ * @returns {{write: (chunk: Uint8Array) => void}} An object with a write method that accepts a Uint8Array chunk to write to the transform stream.
+ */
+async function handleUDPOutBound(webSocket, channelResponseHeader, log) {
+
+	let ischannelHeaderSent = false;
+	const transformStream = new TransformStream({
+		start(controller) {
+
+		},
+		transform(chunk, controller) {
+			// udp message 2 byte is the the length of udp data
+			// TODO: this should have bug, beacsue maybe udp chunk can be in two websocket message
+			for (let index = 0; index < chunk.byteLength;) {
+				const lengthBuffer = chunk.slice(index, index + 2);
+				const udpPakcetLength = new DataView(lengthBuffer).getUint16(0);
+				const udpData = new Uint8Array(
+					chunk.slice(index + 2, index + 2 + udpPakcetLength)
+				);
+				index = index + 2 + udpPakcetLength;
+				controller.enqueue(udpData);
+			}
+		},
+		flush(controller) {
+		}
+	});
+
+	// only handle dns udp for now
+	transformStream.readable.pipeTo(new WritableStream({
+		async write(chunk) {
+			const resp = await fetch(dohURL, // dns server url
+				{
+					method: 'POST',
+					headers: {
+						'content-type': 'application/dns-message',
+					},
+					body: chunk,
+				})
+			const dnsQueryResult = await resp.arrayBuffer();
+			const udpSize = dnsQueryResult.byteLength;
+			// console.log([...new Uint8Array(dnsQueryResult)].map((x) => x.toString(16)));
+			const udpSizeBuffer = new Uint8Array([(udpSize >> 8) & 0xff, udpSize & 0xff]);
+			if (webSocket.readyState === WS_READY_STATE_OPEN) {
+				log(`doh success and dns message length is ${udpSize}`);
+				if (ischannelHeaderSent) {
+					webSocket.send(await new Blob([udpSizeBuffer, dnsQueryResult]).arrayBuffer());
+				} else {
+					webSocket.send(await new Blob([channelResponseHeader, udpSizeBuffer, dnsQueryResult]).arrayBuffer());
+					ischannelHeaderSent = true;
+				}
+			}
+		}
+	})).catch((error) => {
+		log('dns udp has error' + error)
+	});
+
+	const writer = transformStream.writable.getWriter();
+
+	return {
+		/**
+		 *
+		 * @param {Uint8Array} chunk
+		 */
+		write(chunk) {
+			writer.write(chunk);
+		}
+	};
+}
+
+/**
+ * Handles outbound UDP traffic by transforming the data into DNS queries and sending them over a WebSocket connection.
+ * @param {ArrayBuffer} udpChunk - DNS query data sent from the client.
+ * @param {import("@cloudflare/workers-types").WebSocket} webSocket - The WebSocket connection to send the DNS queries over.
+ * @param {ArrayBuffer} channelResponseHeader - The channel response header.
+ * @param {(string) => void} log - The logging function.
+ * @returns {{write: (chunk: Uint8Array) => void}} An object with a write method that accepts a Uint8Array chunk to write to the transform stream.
+ */
+async function handleDNSQuery(udpChunk, webSocket, channelResponseHeader, log) {
+	try {
+		const dnsServer = '8.8.4.4';
+		const dnsPort = 53;
+		let channelHeader = channelResponseHeader;
+
+		const tcpSocket = connect({ hostname: dnsServer, port: dnsPort });
+		log(`Connected to ${dnsServer}:${dnsPort}`);
+
+		const writer = tcpSocket.writable.getWriter();
+		await writer.write(udpChunk);
+		writer.releaseLock();
+
+		await tcpSocket.readable.pipeTo(new WritableStream({
+			async write(chunk) {
+				if (webSocket.readyState === WS_READY_STATE_OPEN) {
+					const dataToSend = channelHeader ? await new Blob([channelHeader, chunk]).arrayBuffer() : chunk;
+					webSocket.send(dataToSend);
+					channelHeader = null;
+				}
+			},
+			close() {
+				log(`TCP connection to DNS server (${dnsServer}) closed`);
+			},
+			abort(reason) {
+				console.error(`TCP connection to DNS server (${dnsServer}) aborted`, reason);
+			},
+		}));
+	} catch (error) {
+		console.error(`Exception in handleDNSQuery function: ${error.message}`);
+	}
+}
+
+
 async function socks5Connect(ipType, remoteIp, remotePort, log) {
 	const { username, password, hostname, port } = parsedSocks5;
 	const socket = connect({ hostname, port });
@@ -2155,6 +1785,7 @@ async function nginx() {
 	<!DOCTYPE html>
 	<html>
 	<head>
+	<meta charset="UTF-8">
 	<title>Welcome to nginx!</title>
 	<style>
 		body {
