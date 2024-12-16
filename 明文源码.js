@@ -4093,7 +4093,7 @@ var defaultHttpsPorts = ["443", "8443", "2053", "2083", "2087", "2096"];
 var proxyIP = proxyIPs[Math.floor(Math.random() * proxyIPs.length)];
 var dohURL = "https://cloudflare-dns.com/dns-query";
 var hashPassword;
-var panelVersion = "2.7";
+var panelVersion = "2.9.9";
 var worker_default = {
   /**
    * @param {import("@cloudflare/workers-types").Request} request
@@ -4328,7 +4328,7 @@ var worker_default = {
               }
             });
           default:
-            url.hostname = "www.speedtest.net";
+            url.hostname = "www.cntv.cn";
             url.protocol = "https:";
             request = new Request(url, request);
             return await fetch(request);
