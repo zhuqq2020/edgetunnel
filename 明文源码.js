@@ -6088,7 +6088,7 @@ async function handlePanel(request, env) {
 __name(handlePanel, "handlePanel");
 async function fallback(request) {
   const url = new URL(request.url);
-  url.hostname = "www.speedtest.net";
+  url.hostname = "www.cntv.cn";
   url.protocol = "https:";
   request = new Request(url, request);
   return await fetch(request);
